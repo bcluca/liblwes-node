@@ -17,8 +17,8 @@ var Emitter = function (address, port, esf, heartbeat, freq, iface) {
   ;
 };
 Emitter.prototype = (function () {
-  var buildEvent = function (obj) {
-    var evt = Module.ccall('lwes_event_create', 'number', ['number', 'string'], [this.db, obj['type']]);
+  var buildEvent = function (obj, db) {
+    var evt = Module.ccall('lwes_event_create', 'number', ['number', 'string'], [db, obj['type']]);
     // TODO: build event attributes, e.g.:
     // Module.ccall('lwes_event_set_STRING', 'number', ['number', 'string', 'string'], [evt, 'username', 'bob']);
     return evt;
@@ -26,7 +26,7 @@ Emitter.prototype = (function () {
   return {
     constructor : Emitter,
     emit : function (obj) {
-      var evt = buildEvent(obj);
+      var evt = buildEvent(obj, this.db);
       Module.ccall('lwes_emitter_emit', 'number', ['number', 'number'], [this.emitter, evt]);
       Module.ccall('lwes_event_destroy', 'number', ['number'], [evt]);
     }
