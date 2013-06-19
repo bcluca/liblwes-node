@@ -1,0 +1,7 @@
+UserLogin
+{
+  string   username;    # Username
+  uint64   password;    # Password
+  ip_addr  clientIP;    # IP address
+  boolean  successful;  # Login status
+}
