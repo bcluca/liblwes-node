@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 /*! \file lwes_event_type_db.h
  *  \brief Functions for an event specification file database
@@ -52,7 +52,7 @@ struct lwes_event_type_db
 };
 
 /*! \brief Creates the memory for the event_type_db.
- *  
+ *
  *  This creates memory which should be freed with lwes_event_type_db_destroy
  *
  *  \param[in] filename the path to the file containing the esf description
@@ -114,7 +114,7 @@ lwes_event_type_db_add_attribute
  */
 int
 lwes_event_type_db_check_for_event
-  (struct lwes_event_type_db *db, 
+  (struct lwes_event_type_db *db,
    LWES_SHORT_STRING event_name);
 
 /*! \brief Check for an attribute in an event in the database
@@ -127,7 +127,7 @@ lwes_event_type_db_check_for_event
  */
 int
 lwes_event_type_db_check_for_attribute
-  (struct lwes_event_type_db *db, 
+  (struct lwes_event_type_db *db,
    LWES_CONST_SHORT_STRING attr_name,
    LWES_CONST_SHORT_STRING event_name);
 
@@ -143,13 +143,28 @@ lwes_event_type_db_check_for_attribute
  */
 int
 lwes_event_type_db_check_for_type
-  (struct lwes_event_type_db *db, 
+  (struct lwes_event_type_db *db,
    LWES_BYTE type_value,
+   LWES_CONST_SHORT_STRING attr_name,
+   LWES_CONST_SHORT_STRING event_name);
+
+/*! \brief Returns the type of an event attribute as defined in the type db
+ *
+ *  \param[in] db the db to check
+ *  \param[in] attr_name the attribute name
+ *  \param[in] event_name the event name
+ *
+ *  \return the attribute type if the event attribute is in the db,
+ *          0 otherwise
+ */
+LWES_BYTE
+lwes_event_type_db_get_attr_type
+  (struct lwes_event_type_db *db,
    LWES_CONST_SHORT_STRING attr_name,
    LWES_CONST_SHORT_STRING event_name);
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* __LWES_EVENT_TYPE_DB */

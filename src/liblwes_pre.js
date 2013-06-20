@@ -20,17 +20,51 @@ var Emitter = function (address, port, esf, heartbeat, freq, iface) {
   this.db = Module.ccall('lwes_event_type_db_create', 'number', ['string'], [esf]);
   this.emitter = Module.ccall('lwes_emitter_create', 'number',
     ['string', 'string', 'number', 'number',  'number', 'number'],
-    [address,  iface,    port,     heartbeat, freq,     emitterIndex])
-  ;
+    [address,  iface,    port,     heartbeat, freq,     emitterIndex]
+  );
 };
 
 Emitter.prototype = (function () {
 
-  var buildEvent = function (obj, db) {
-    var evt = Module.ccall('lwes_event_create', 'number', ['number', 'string'], [db, obj['type']]);
+  var TYPE_SUFFIX = {
+    1   : 'U_INT_16',           // 2 byte unsigned integer type
+    2   : 'INT_16',             // 2 byte signed integer type type
+    3   : 'U_INT_32',           // 4 byte unsigned integer type
+    4   : 'INT_32',             // 4 byte signed integer type
+    5   : 'STRING',             // variable bytes string type
+    6   : 'IP_ADDR_w_string',   // 4 byte ipv4 address type
+    7   : 'INT_64',             // 8 byte signed integer type
+    8   : 'U_INT_64',           // 8 byte unsigned integer type
+    9   : 'BOOLEAN',            // 1 byte boolean type
+    255 : 'UNDEFINED'           // undefined type
+  };
 
-    // TODO: build event attributes, e.g.:
-    // Module.ccall('lwes_event_set_STRING', 'number', ['number', 'string', 'string'], [evt, 'username', 'bob']);
+  var buildEvent = function (obj, db) {
+    var evt   = Module.ccall('lwes_event_create', 'number', ['number', 'string'], [db, obj['type']]),
+        attrs = obj['attributes']
+    ;
+
+    // Build event attributes, inferring the types by looking up the attributes in the type db
+    for (var attrName in attrs) {
+      var attrType = Module.ccall('lwes_event_type_db_get_attr_type', 'number',
+        ['number', 'string', 'string'],
+        [db,       attrName, obj['type']]
+      );
+      if ([0, 255].indexOf(attrType) !== -1) {
+        console.log("Warning: Event attribute '"+ obj['type'] +'::'+ attrName +"' has an undefined type");
+      } else {
+        var valueType = 'number',
+            suffix    = TYPE_SUFFIX[attrType]
+        ;
+        if (suffix.toLowerCase().indexOf('string') !== -1) {
+          valueType = 'string';
+        }
+        Module.ccall('lwes_event_set_'+ suffix, 'number',
+          ['number', 'string', valueType],
+          [evt,      attrName, attrs[attrName]]
+        );
+      }
+    }
 
     return evt;
   };

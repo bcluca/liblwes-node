@@ -1,7 +1,12 @@
-UserLogin
+FooBar                  # Sample LWES event
 {
-  string   username;    # Username
-  uint64   password;    # Password
-  ip_addr  clientIP;    # IP address
-  boolean  successful;  # Login status
+  string   fooStr;      # Sample string attribute
+  int16    foo16;       # Sample 16-bit integer attribute
+  uint16   fooU16;      # Sample 16-bit unsigned integer attribute
+  int32    foo32;       # Sample 32-bit integer attribute
+  uint32   fooU32;      # Sample 32-bit unsigned integer attribute
+  int64    foo64;       # Sample 64-bit integer attribute
+  uint64   fooU64;      # Sample 64-bit unsigned integer attribute
+  boolean  fooBool;     # Sample boolean attribute
+  ip_addr  fooIP;       # Sample IP address attribute
 }
