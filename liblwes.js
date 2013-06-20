@@ -24,8 +24,8 @@ Emitter.prototype = (function () {
     4   : 'INT_32',             // 4 byte signed integer type
     5   : 'STRING',             // variable bytes string type
     6   : 'IP_ADDR_w_string',   // 4 byte ipv4 address type
-    7   : 'INT_64',             // 8 byte signed integer type
-    8   : 'U_INT_64',           // 8 byte unsigned integer type
+    7   : 'INT_64_w_string',    // 8 byte signed integer type
+    8   : 'U_INT_64_w_string',  // 8 byte unsigned integer type
     9   : 'BOOLEAN',            // 1 byte boolean type
     255 : 'UNDEFINED'           // undefined type
   };
