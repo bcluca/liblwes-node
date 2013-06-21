@@ -15,9 +15,12 @@ var Emitter = function (address, port, esf, heartbeat, freq, iface) {
   iface     = typeof iface     !== 'undefined' ? iface     : null;
   heartbeat = typeof heartbeat !== 'undefined' ? heartbeat : false;
 
-  var emitterIndex = emitters.push(this) - 1;
+  var emitterIndex = emitters.push(this) - 1,
+      esfFile      = emitterIndex +'.esf'
+  ;
+  FS.createLazyFile('/', esfFile, esf, true, false);
 
-  this.db = Module.ccall('lwes_event_type_db_create', 'number', ['string'], [esf]);
+  this.db = Module.ccall('lwes_event_type_db_create', 'number', ['string'], [esfFile]);
   this.emitter = Module.ccall('lwes_emitter_create', 'number',
     ['string', 'string', 'number', 'number',  'number', 'number'],
     [address,  iface,    port,     heartbeat, freq,     emitterIndex]

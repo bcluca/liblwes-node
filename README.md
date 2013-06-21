@@ -65,10 +65,7 @@ For more details on the LWES protocol and the ESF specification, please see the 
 Notes
 -----
 
-This port is a work in progress. There are still a few limitations, that will be addressed soon:
-
 * The definition of a type db via an ESF file is currently mandatory
-* The ESF file is embedded as part of the virtual file system located in the `data` directory, which means that the library must be recompiled if the ESF file changes
 * The listener has not been ported yet
 
 Compilation
@@ -79,7 +76,7 @@ You can recompile the `liblwes.js` library with emscripten by running `make`. Th
 Tests
 -----
 
-There is a sample emitter in the `tests` folder. Real tests are coming soon.
+There is a sample emitter in the `demos` folder. Real tests are coming soon.
 
 License
 -------
