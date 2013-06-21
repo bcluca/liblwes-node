@@ -53,12 +53,16 @@ This allows us to emit events defined as simple object literals.
 
 The constructor of the `Emitter` class accepts the following parameters:
 
-* `address`   : the destination IP address
-* `port`      : the destination port
-* `esf`       : path to the type db (e.g. `data/sample.esf`)
-* `heartbeat` : boolean that toggles the heartbeat (optional, disabled by default)
-* `freq`      : heartbeat frequency (optional, 60 by default)
-* `iface`     : interface (optional, all local interfaces by default)
+Name | Description
+--- | ---
+`address`   | the destination IP address
+`port`      | the destination port
+`esf`       | path to the type db (e.g. `data/sample.esf`)
+`heartbeat` | boolean that toggles the heartbeat (optional, disabled by default)
+`freq`      | heartbeat frequency (optional, 60 by default)
+`iface`     | interface (optional, all local interfaces by default)
+
+Emitters can be closed individually with `emitter.close()` or globally with `Emitter.closeAll()`. This releases all resources allocated in the emscripten subsystem and fires a `System::Shutdown` event if the `heartbeat` is enabled.
 
 For more details on the LWES protocol and the ESF specification, please see the LWES documentation at [lwes.org](http://www.lwes.org) or their github page at [github.com/lwes](http://github.com/lwes).
 
