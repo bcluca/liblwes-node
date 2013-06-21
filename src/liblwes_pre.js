@@ -76,14 +76,41 @@ Emitter.prototype = (function () {
 
     constructor : Emitter,
 
+    isClosed : function () {
+      return this.emitter === null || this.db === null;
+    },
+
     emit : function (obj) {
+      if (this.isClosed()) return -1;
 
       var evt = buildEvent(obj, this.db);
       Module.ccall('lwes_emitter_emit', 'number', ['number', 'number'], [this.emitter, evt]);
       Module.ccall('lwes_event_destroy', 'number', ['number'], [evt]);
 
+      return 0;
+    },
+
+    close : function () {
+      if (this.isClosed()) return -1;
+
+      Module.ccall('lwes_event_type_db_destroy', 'number', ['number'], [this.db]);
+      this.db = null;
+      Module.ccall('lwes_emitter_destroy', 'number', ['number'], [this.emitter]);
+      this.emitter = null;
+
+      return 0;
     }
 
   };
 
 })();
+
+Emitter.closeAll = function () {
+
+  emitters.forEach(function (e) {
+    if (!e.isClosed()) {
+      e.close();
+    }
+  });
+
+};
