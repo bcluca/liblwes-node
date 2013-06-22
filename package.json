@@ -1,6 +1,6 @@
 {
   "name": "liblwes",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Node.js port of the LWES C library via Emscripten and asm.js",
   "main": "liblwes.js",
   "repository": {
