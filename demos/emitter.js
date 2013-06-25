@@ -1,6 +1,10 @@
 var Emitter = require('../liblwes').Emitter;
 
-var emitter = new Emitter('127.0.0.1', 1111, 'data/sample.esf');
+var emitter = new Emitter({
+  'address' : '127.0.0.1',
+  'port'    : 1111,
+  'esf'     : 'data/sample.esf'
+});
 
 emitter.emit({
   'type'       : 'FooBar',
@@ -16,3 +20,5 @@ emitter.emit({
     'fooIP'    : '127.0.0.1'
   }
 });
+
+emitter.close();

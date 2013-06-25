@@ -18,29 +18,44 @@ var dgram    = require('dgram'),
       'setInt64Attr'   : Module.cwrap('lwes_event_set_INT_64_w_string', 'number', ['number', 'string', 'string']),
       'setUInt64Attr'  : Module.cwrap('lwes_event_set_U_INT_64_w_string', 'number', ['number', 'string', 'string']),
       'setBooleanAttr' : Module.cwrap('lwes_event_set_BOOLEAN', 'number', ['number', 'string', 'number'])
+    },
+    Util = {
+      'extend' : function (dest, src) {
+        for (var prop in src) {
+            if (src.hasOwnProperty(prop)) {
+                dest[prop] = src[prop];
+            }
+        }
+        return dest;
+      }
     }
 ;
 
-var Emitter = function (address, port, esf, heartbeat, freq, iface) {
+var Emitter = function (options) {
 
-  this.address = address;
-  this.port    = port;
+  var opts = Util.extend({}, Emitter.DEFAULTS);
+  Util.extend(opts, options);
+
+  if (opts.esf === null) {
+    throw new Error("Missing 'esf' option");
+  }
+
+  this.address = opts.address;
+  this.port    = opts.port;
   this.socket  = dgram.createSocket('udp4');
 
   this.socket.unref();
 
-  // Defaults
-  freq      = typeof freq      !== 'undefined' ? freq      : 60;
-  iface     = typeof iface     !== 'undefined' ? iface     : null;
-  heartbeat = typeof heartbeat !== 'undefined' ? heartbeat : false;
-
-  var emitterIndex = emitters.push(this) - 1,
-      esfFile      = emitterIndex +'.esf'
+  var emitterIndex  = emitters.push(this) - 1,
+      esfFile       = emitterIndex +'.esf',
+      hasHeartbeat  = !!opts.heartbeat,
+      heartbeatFreq = hasHeartbeat ? opts.heartbeat : 0
   ;
-  FS.createLazyFile('/', esfFile, esf, true, false);
+
+  FS.createLazyFile('/', esfFile, opts.esf, true, false);
 
   this.db      = LWES.createTypeDB(esfFile);
-  this.emitter = LWES.createEmitter(address, iface, port, heartbeat, freq, emitterIndex);
+  this.emitter = LWES.createEmitter(opts.address, opts.iface, opts.port, hasHeartbeat, heartbeatFreq, emitterIndex);
 };
 
 Emitter.prototype = (function () {
@@ -54,8 +69,7 @@ Emitter.prototype = (function () {
     6   : 'IPAddr',     // 4 byte ipv4 address type
     7   : 'Int64',      // 8 byte signed integer type
     8   : 'UInt64',     // 8 byte unsigned integer type
-    9   : 'Boolean',    // 1 byte boolean type
-    255 : 'Undefined'   // undefined type
+    9   : 'Boolean'     // 1 byte boolean type
   };
 
   var buildEvent = function (obj, db) {
@@ -117,6 +131,14 @@ Emitter.closeAll = function () {
     }
   });
 
+};
+
+Emitter.DEFAULTS = {
+  'address'   : '127.0.0.1',
+  'port'      : 1111,
+  'esf'       : null,
+  'heartbeat' : false,
+  'iface'     : null
 };
 
 // Export interface

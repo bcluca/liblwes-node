@@ -14,7 +14,11 @@ Usage
 ```javascript
 var Emitter = require('liblwes').Emitter;
 
-var emitter = new Emitter('127.0.0.1', 1111, 'data/sample.esf');
+var emitter = new Emitter({
+  'address' : '127.0.0.1',
+  'port'    : 1111,
+  'esf'     : 'data/sample.esf'
+});
 
 emitter.emit({
   'type'       : 'FooBar',
@@ -30,6 +34,8 @@ emitter.emit({
     'fooIP'    : '127.0.0.1'
   }
 });
+
+emitter.close();
 ```
 
 The type of each event attribute is inferred from the type db, e.g. `sample.esf`:
@@ -51,16 +57,15 @@ FooBar                  # Sample LWES event
 
 This allows us to emit events defined as simple object literals.
 
-The constructor of the `Emitter` class accepts the following parameters:
+The `options` for the constructor of the `Emitter` class are:
 
 Name | Description
 --- | ---
-`address`   | the destination IP address
-`port`      | the destination port
-`esf`       | path to the type db (e.g. `data/sample.esf`)
-`heartbeat` | boolean that toggles the heartbeat (optional, disabled by default)
-`freq`      | heartbeat frequency (optional, 60 by default)
-`iface`     | interface (optional, all local interfaces by default)
+`address`   | The destination IP address ('127.0.0.1' by default).
+`port`      | The destination port (`1111` by default).
+`esf`       | Path to the ESF (Event Specification Format) file (e.g. `data/sample.esf`).
+`heartbeat` | Heartbeat frequency, e.g. `60`. Disabled (`false`) by default.
+`iface`     | The network interface (all local interfaces by default).
 
 Emitters can be closed individually with `emitter.close()` or globally with `Emitter.closeAll()`. This releases all resources allocated in the emscripten subsystem and fires a `System::Shutdown` event if the `heartbeat` is enabled.
 
@@ -80,7 +85,7 @@ You can recompile the `liblwes.js` library with emscripten by running `make`. Th
 Tests
 -----
 
-There is a sample emitter in the `demos` folder. Real tests are coming soon.
+There is a sample emitter in the `demos` directory. Real tests are coming soon.
 
 License
 -------
