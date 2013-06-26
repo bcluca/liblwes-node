@@ -4518,6 +4518,7 @@ run();
 // {{POST_RUN_ADDITIONS}}
   // {{MODULE_ADDITIONS}}
 var dgram    = require('dgram'),
+    fs       = require('fs'),
     emitters = [],
     LWES     = {
       'createTypeDB'   : Module.cwrap('lwes_event_type_db_create', 'number', ['string']),
@@ -4552,45 +4553,73 @@ var dgram    = require('dgram'),
 var Emitter = function (options) {
   var opts = Util.extend({}, Emitter.DEFAULTS);
   Util.extend(opts, options);
-  if (opts.esf === null) {
-    throw new Error("Missing 'esf' option");
+  if (opts.esf !== null && !fs.existsSync(opts.esf)) {
+    throw new Error("Cannot locate ESF file '"+ opts.esf +"'");
   }
   this.address = opts.address;
   this.port    = opts.port;
   this.socket  = dgram.createSocket('udp4');
   this.socket.unref();
   var emitterIndex  = emitters.push(this) - 1,
-      esfFile       = emitterIndex +'.esf',
+      esfFileName   = emitterIndex +'.esf',
       hasHeartbeat  = !!opts.heartbeat,
       heartbeatFreq = hasHeartbeat ? opts.heartbeat : 0
   ;
-  FS.createLazyFile('/', esfFile, opts.esf, true, false);
-  this.db      = LWES.createTypeDB(esfFile);
+  if (opts.esf !== null) {
+    FS.createLazyFile('/', esfFileName, opts.esf, true, false);
+    this.db = LWES.createTypeDB(esfFileName);
+  }
   this.emitter = LWES.createEmitter(opts.address, opts.iface, opts.port, hasHeartbeat, heartbeatFreq, emitterIndex);
 };
 Emitter.prototype = (function () {
-  var ATTR_TYPES = {
-    1   : 'UInt16',     // 2 byte unsigned integer type
-    2   : 'Int16',      // 2 byte signed integer type type
-    3   : 'UInt32',     // 4 byte unsigned integer type
-    4   : 'Int32',      // 4 byte signed integer type
-    5   : 'String',     // variable bytes string type
-    6   : 'IPAddr',     // 4 byte ipv4 address type
-    7   : 'Int64',      // 8 byte signed integer type
-    8   : 'UInt64',     // 8 byte unsigned integer type
-    9   : 'Boolean'     // 1 byte boolean type
-  };
+  var ATTR_TYPES = [
+    'Unknown',
+    'UInt16',      // 2 byte unsigned integer type
+    'Int16',       // 2 byte signed integer type type
+    'UInt32',      // 4 byte unsigned integer type
+    'Int32',       // 4 byte signed integer type
+    'String',      // variable bytes string type
+    'IPAddr',      // 4 byte ipv4 address type
+    'Int64',       // 8 byte signed integer type
+    'UInt64',      // 8 byte unsigned integer type
+    'Boolean'      // 1 byte boolean type
+  ];
   var buildEvent = function (obj, db) {
     var evt   = LWES.createEvent(db, obj['type']),
         attrs = obj['attributes']
     ;
-    // Build event attributes, inferring the types by looking up the attributes in the type db
+    // Build event attributes
     for (var attrName in attrs) {
-      var attrType = LWES.getAttrType(db, attrName, obj['type']);
+      var attrValue = attrs[attrName],
+          attrType  = null
+      ;
+      switch (typeof attrValue) {
+        // Get the type from the attributes object if present
+        case 'object':
+          attrType  = ATTR_TYPES.indexOf(attrValue[1]);
+          attrValue = attrValue[0];
+          break;
+        // Map to Boolean if native boolean
+        case 'boolean':
+          attrType = 9;  // Boolean
+          break;
+        // Map to String if native string
+        case 'string':
+          attrType = 5;  // String
+          break;
+        default:
+          if (typeof db === 'undefined' || db === null) {
+            attrType  = 5; // String
+            attrValue = attrValue.toString();
+          } else {
+            // Infer the attribute type by looking up the attribute in the type db
+            attrType = LWES.getAttrType(db, attrName, obj['type']);
+          }
+      }
       if ([0, 255].indexOf(attrType) !== -1) {
         console.log("Warning: Event attribute '"+ obj['type'] +'::'+ attrName +"' has an undefined type");
       } else {
-        LWES['set'+ ATTR_TYPES[attrType] +'Attr'](evt, attrName, attrs[attrName]);
+        LWES['set'+ ATTR_TYPES[attrType] +'Attr'](evt, attrName, attrValue);
       }
     }
     return evt;
