@@ -94,10 +94,6 @@ Emitter.prototype = (function () {
         case 'boolean':
           attrType = 9;  // Boolean
           break;
-        // Map to String if native string
-        case 'string':
-          attrType = 5;  // String
-          break;
         default:
           if (typeof db === 'undefined' || db === null) {
             attrType  = 5; // String
