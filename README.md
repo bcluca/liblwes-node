@@ -89,7 +89,7 @@ For more details on the LWES protocol and the ESF specification, please see the 
 
 ### Listener
 
-```
+```javascript
 var Listener = require('liblwes').Listener;
 
 var listener = new Listener('127.0.0.1', 1111);
@@ -142,7 +142,7 @@ Emitters can be closed individually with `emitter.close()` or globally with `Emi
 
 Listeners conform to Node's `EventEmitter` API, with the addition of wildcard events to support notifications on any LWES event:
 
-```
+```javascript
 listener.on('*', function (lwesEvent) {
   console.log(lwesEvent);
 });
@@ -150,7 +150,7 @@ listener.on('*', function (lwesEvent) {
 
 Listeners can be closed with the `close` method:
 
-```
+```javascript
 listener.close();
 ```
 
