@@ -11,6 +11,8 @@ Installation
 Usage
 -----
 
+### Emitter
+
 ```javascript
 var Emitter = require('liblwes').Emitter;
 
@@ -85,8 +87,30 @@ FooBar                  # Sample LWES event
 
 For more details on the LWES protocol and the ESF specification, please see the LWES documentation at [lwes.org](http://www.lwes.org) or their github page at [github.com/lwes](http://github.com/lwes).
 
+### Listener
+
+```
+var Listener = require('liblwes').Listener;
+
+var listener = new Listener('127.0.0.1', 1111);
+
+// Listen to all events
+listener.on('*', function (lwesEvent) {
+  console.log(lwesEvent);
+});
+
+// Listen to specific events
+listener.on('FooBar', function (lwesEvent) {
+  console.log('=> Specific event: ' + lwesEvent.type);
+});
+```
+
+Note: 64-bit integers are returned as strings.
+
 API documentation
 -----------------
+
+### Emitter
 
 The constructor of the `Emitter` class accepts the following options:
 
@@ -114,15 +138,26 @@ Type | Description
 
 Emitters can be closed individually with `emitter.close()` or globally with `Emitter.closeAll()`. This releases all resources allocated in the emscripten subsystem and fires a `System::Shutdown` event if the `heartbeat` is enabled.
 
+### Listener
+
+Listeners conform to Node's `EventEmitter` API, with the addition of wildcard events to support notifications on any LWES event:
+
+```
+listener.on('*', function (lwesEvent) {
+  console.log(lwesEvent);
+});
+```
+
+Listeners can be closed with the `close` method:
+
+```
+listener.close();
+```
+
 Compilation
 -----------
 
 You can recompile the `liblwes.js` library with emscripten by running `make`. The `emcc` binary must be in your `PATH`.
-
-Notes
------
-
-The listener has not been ported yet.
 
 License
 -------

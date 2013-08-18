@@ -1,24 +1,29 @@
-var dgram    = require('dgram'),
-    fs       = require('fs'),
-    emitters = [],
-    LWES     = {
-      'createTypeDB'   : Module.cwrap('lwes_event_type_db_create', 'number', ['string']),
-      'createEmitter'  : Module.cwrap('lwes_emitter_create', 'number', ['string', 'string', 'number', 'number',  'number', 'number']),
-      'createEvent'    : Module.cwrap('lwes_event_create', 'number', ['number', 'string']),
-      'getAttrType'    : Module.cwrap('lwes_event_type_db_get_attr_type', 'number', ['number', 'string', 'string']),
-      'emitEvent'      : Module.cwrap('lwes_emitter_emit', 'number', ['number', 'number']),
-      'destroyEvent'   : Module.cwrap('lwes_event_destroy', 'number', ['number']),
-      'destroyTypeDB'  : Module.cwrap('lwes_event_type_db_destroy', 'number', ['number']),
-      'destroyEmitter' : Module.cwrap('lwes_emitter_destroy', 'number', ['number']),
-      'setUInt16Attr'  : Module.cwrap('lwes_event_set_U_INT_16', 'number', ['number', 'string', 'number']),
-      'setInt16Attr'   : Module.cwrap('lwes_event_set_INT_16', 'number', ['number', 'string', 'number']),
-      'setUInt32Attr'  : Module.cwrap('lwes_event_set_U_INT_32', 'number', ['number', 'string', 'number']),
-      'setInt32Attr'   : Module.cwrap('lwes_event_set_INT_32', 'number', ['number', 'string', 'number']),
-      'setStringAttr'  : Module.cwrap('lwes_event_set_STRING', 'number', ['number', 'string', 'string']),
-      'setIPAddrAttr'  : Module.cwrap('lwes_event_set_IP_ADDR_w_string', 'number', ['number', 'string', 'string']),
-      'setInt64Attr'   : Module.cwrap('lwes_event_set_INT_64_w_string', 'number', ['number', 'string', 'string']),
-      'setUInt64Attr'  : Module.cwrap('lwes_event_set_U_INT_64_w_string', 'number', ['number', 'string', 'string']),
-      'setBooleanAttr' : Module.cwrap('lwes_event_set_BOOLEAN', 'number', ['number', 'string', 'number'])
+var dgram        = require('dgram'),
+    fs           = require('fs'),
+    util         = require('util'),
+    EventEmitter = require('events').EventEmitter,
+    emitters     = [],
+    LWES         = {
+      'createTypeDB'     : Module.cwrap('lwes_event_type_db_create', 'number', ['string']),
+      'createEmitter'    : Module.cwrap('lwes_emitter_create', 'number', ['string', 'string', 'number', 'number',  'number', 'number']),
+      'createEvent'      : Module.cwrap('lwes_event_create', 'number', ['number', 'string']),
+      'createBlankEvent' : Module.cwrap('lwes_event_create_no_name', 'number', ['number']),
+      'getAttrType'      : Module.cwrap('lwes_event_type_db_get_attr_type', 'number', ['number', 'string', 'string']),
+      'emitEvent'        : Module.cwrap('lwes_emitter_emit', 'number', ['number', 'number']),
+      'destroyEvent'     : Module.cwrap('lwes_event_destroy', 'number', ['number']),
+      'destroyTypeDB'    : Module.cwrap('lwes_event_type_db_destroy', 'number', ['number']),
+      'destroyEmitter'   : Module.cwrap('lwes_emitter_destroy', 'number', ['number']),
+      'setUInt16Attr'    : Module.cwrap('lwes_event_set_U_INT_16', 'number', ['number', 'string', 'number']),
+      'setInt16Attr'     : Module.cwrap('lwes_event_set_INT_16', 'number', ['number', 'string', 'number']),
+      'setUInt32Attr'    : Module.cwrap('lwes_event_set_U_INT_32', 'number', ['number', 'string', 'number']),
+      'setInt32Attr'     : Module.cwrap('lwes_event_set_INT_32', 'number', ['number', 'string', 'number']),
+      'setStringAttr'    : Module.cwrap('lwes_event_set_STRING', 'number', ['number', 'string', 'string']),
+      'setIPAddrAttr'    : Module.cwrap('lwes_event_set_IP_ADDR_w_string', 'number', ['number', 'string', 'string']),
+      'setInt64Attr'     : Module.cwrap('lwes_event_set_INT_64_w_string', 'number', ['number', 'string', 'string']),
+      'setUInt64Attr'    : Module.cwrap('lwes_event_set_U_INT_64_w_string', 'number', ['number', 'string', 'string']),
+      'setBooleanAttr'   : Module.cwrap('lwes_event_set_BOOLEAN', 'number', ['number', 'string', 'number']),
+      'eventFromBytes'   : Module.cwrap('lwes_event_from_bytes', 'number', ['number', 'number', 'number', 'number', 'number']),
+      'eventToJSON'      : Module.cwrap('lwes_event_to_json', 'string', ['number', 'number'])
     },
     Util = {
       'extend' : function (dest, src) {
@@ -164,7 +169,50 @@ Emitter.DEFAULTS = {
   'iface'     : null
 };
 
+var Listener = function (address, port) {
+  var self     = this,
+      BUF_SIZE = 131072
+  ;
+
+  this.address  = address;
+  this.port     = port;
+  this.socket   = dgram.createSocket('udp4');
+
+  this.socket.on('message', function (message, info) {
+
+    var evt    = LWES.createBlankEvent(null),
+        bytes  = Module._malloc(message.length),
+        buffer = Module._malloc(BUF_SIZE)
+    ;
+
+    Module.HEAPU8.set(message, bytes);
+    LWES.eventFromBytes(evt, bytes, message.length, 0, buffer);
+    Module._free(bytes);
+
+    var serializedEvent = LWES.eventToJSON(evt, buffer);
+    var lwesEvent = JSON.parse(serializedEvent);
+
+    self.emit('*', lwesEvent);
+    self.emit(lwesEvent.type, lwesEvent);
+
+    Module._free(buffer);
+    LWES.destroyEvent(evt);
+
+  }).bind(port, address);
+
+  if (address !== '0.0.0.0' && address !== '127.0.0.1') {
+    this.socket.addMembership(address);
+  }
+};
+
+util.inherits(Listener, EventEmitter);
+
+Listener.prototype.close = function () {
+  this.socket.close();
+};
+
 // Export interface
 module.exports = {
-  'Emitter' : Emitter
+  'Emitter' : Emitter,
+  'Listener' : Listener
 };
