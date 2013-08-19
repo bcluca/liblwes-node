@@ -5742,10 +5742,11 @@ var Listener = function (address, port) {
     self.emit(lwesEvent.type, lwesEvent);
     Module._free(buffer);
     LWES.destroyEvent(evt);
-  }).bind(port, address);
-  if (address !== '0.0.0.0' && address !== '127.0.0.1') {
-    this.socket.addMembership(address);
-  }
+  }).bind(port, address, function () {
+    if (address !== '0.0.0.0' && address !== '127.0.0.1') {
+      self.socket.addMembership(address);
+    }
+  });
 };
 util.inherits(Listener, EventEmitter);
 Listener.prototype.close = function () {
