@@ -154,6 +154,14 @@ Listeners can be closed with the `close` method:
 listener.close();
 ```
 
+You can capture `liblwes` errors by listening on `liblwes::error` events, e.g.:
+
+```javascript
+listener.on('liblwes::error', function (e) {
+  console.log('=> Error: ' + e);
+});
+```
+
 Compilation
 -----------
 

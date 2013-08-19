@@ -190,10 +190,15 @@ var Listener = function (address, port) {
     Module._free(bytes);
 
     var serializedEvent = LWES.eventToJSON(evt, buffer);
-    var lwesEvent = JSON.parse(serializedEvent);
 
-    self.emit('*', lwesEvent);
-    self.emit(lwesEvent.type, lwesEvent);
+    try {
+      var lwesEvent = JSON.parse(serializedEvent);
+      self.emit('*', lwesEvent);
+      self.emit(lwesEvent.type, lwesEvent);
+    } catch (e) {
+      var msg = 'Cannot parse LWES event: '+ serializedEvent;
+      self.emit('liblwes::error', msg);
+    }
 
     Module._free(buffer);
     LWES.destroyEvent(evt);

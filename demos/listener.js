@@ -11,3 +11,8 @@ listener.on('*', function (lwesEvent) {
 listener.on('FooBar', function (lwesEvent) {
   console.log('=> Specific event: ' + lwesEvent.type);
 });
+
+// Capture liblwes errors
+listener.on('liblwes::error', function (e) {
+  console.log('=> Error: ' + e);
+});
