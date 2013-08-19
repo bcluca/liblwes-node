@@ -1,5 +1,8 @@
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
 
 #include "lwes_js_ext.h"
 
@@ -93,6 +96,47 @@ lwes_LONG_STRING_to_string
   return sprintf(buffer + offset, "%s", a_string);
 }
 
+/*
+ * Replaces in the string 'str' all the occurrences of the source string 'old'
+ * with the destination string 'new'. The parameters 'old' and 'new' can be of
+ * any length, and their lengths are allowed to differ.
+ *
+ * Returns the post-replacement string, or NULL if memory for the new string
+ * could not be allocated. Does not modify the original string. The memory for
+ * the returned post-replacement string must be deallocated by the caller.
+ *
+ */
+char *replace_str(const char *str, const char *old, const char *new)
+{
+  char *ret, *r;
+  const char *p, *q;
+  size_t oldlen = strlen(old);
+  size_t count, retlen, newlen = strlen(new);
+
+  if (oldlen != newlen) {
+    for (count = 0, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen)
+      count++;
+    /* this is undefined if p - str > PTRDIFF_MAX */
+    retlen = p - str + strlen(p) + count * (newlen - oldlen);
+  } else
+    retlen = strlen(str);
+
+  if ((ret = malloc(retlen + 1)) == NULL)
+    return NULL;
+
+  for (r = ret, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen) {
+    /* this is undefined if q - p > PTRDIFF_MAX */
+    ptrdiff_t l = q - p;
+    memcpy(r, p, l);
+    r += l;
+    memcpy(r, new, newlen);
+    r += newlen;
+  }
+  strcpy(r, p);
+
+  return ret;
+}
+
 int
 lwes_event_attribute_to_string
   (struct lwes_event_attribute *attribute,
@@ -100,6 +144,8 @@ lwes_event_attribute_to_string
    int offset)
 {
   int n;
+  char *tmp_buf1;
+  char *tmp_buf2;
 
   if (attribute->type == LWES_U_INT_16_TOKEN)
   {
@@ -145,7 +191,17 @@ lwes_event_attribute_to_string
   else if (attribute->type == LWES_STRING_TOKEN)
   {
     n = sprintf(buffer + offset, "\"");
-    n += lwes_LONG_STRING_to_string((LWES_LONG_STRING)attribute->value, buffer, offset + n);
+    tmp_buf1 = replace_str((char *)attribute->value, "\\", "\\\\");
+    if (tmp_buf1 != NULL)
+    {
+      tmp_buf2 = replace_str(tmp_buf1, "\"", "\\\"");
+      if (tmp_buf2 != NULL)
+      {
+        n += lwes_LONG_STRING_to_string((LWES_LONG_STRING)tmp_buf2, buffer, offset + n);
+        free(tmp_buf2);
+      }
+      free(tmp_buf1);
+    }
     n += sprintf(buffer + offset + n, "\"");
     return n;
   }

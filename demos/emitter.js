@@ -36,14 +36,13 @@ emitter2.emit({
   }
 });
 
-
 // Example of emitter with no validation and no type inference
 var emitter3 = new Emitter();
 
 emitter3.emit({
   'type'       : 'Whatever',
   'attributes' : {
-    'foo'      : 'Hello',                 // Type spec not needed for String attributes
+    'foo'      : '{"a":1}',               // Type spec not needed for String attributes
     'bar'      : true,                    // Type spec not needed for Boolean attributes
     'baz'      : [78427, 'Int32'],        // Other attribute types do need a type spec
     'blegga'   : ['127.0.0.1', 'IPAddr'],
