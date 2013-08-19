@@ -137,6 +137,30 @@ char *replace_str(const char *str, const char *old, const char *new)
   return ret;
 }
 
+char *escape_for_json(const char *str)
+{
+  char *tmp_buf1;
+  char *tmp_buf2;
+
+  tmp_buf1 = replace_str((char *)str, "\\", "\\\\");
+  if (tmp_buf1 != NULL)
+  {
+    tmp_buf2 = replace_str((char *)tmp_buf1, "\n", "\\n");
+    free(tmp_buf1);
+    if (tmp_buf2 != NULL)
+    {
+      tmp_buf1 = replace_str(tmp_buf2, "\"", "\\\"");
+      free(tmp_buf2);
+      if (tmp_buf1 != NULL)
+      {
+        return tmp_buf1;
+      }
+    }
+  }
+
+  return NULL;
+}
+
 int
 lwes_event_attribute_to_string
   (struct lwes_event_attribute *attribute,
@@ -144,8 +168,7 @@ lwes_event_attribute_to_string
    int offset)
 {
   int n;
-  char *tmp_buf1;
-  char *tmp_buf2;
+  char *tmp_buffer;
 
   if (attribute->type == LWES_U_INT_16_TOKEN)
   {
@@ -191,16 +214,11 @@ lwes_event_attribute_to_string
   else if (attribute->type == LWES_STRING_TOKEN)
   {
     n = sprintf(buffer + offset, "\"");
-    tmp_buf1 = replace_str((char *)attribute->value, "\\", "\\\\");
-    if (tmp_buf1 != NULL)
+    tmp_buffer = escape_for_json((char *)attribute->value);
+    if (tmp_buffer != NULL)
     {
-      tmp_buf2 = replace_str(tmp_buf1, "\"", "\\\"");
-      if (tmp_buf2 != NULL)
-      {
-        n += lwes_LONG_STRING_to_string((LWES_LONG_STRING)tmp_buf2, buffer, offset + n);
-        free(tmp_buf2);
-      }
-      free(tmp_buf1);
+      n += lwes_LONG_STRING_to_string((LWES_LONG_STRING)tmp_buffer, buffer, offset + n);
+      free(tmp_buffer);
     }
     n += sprintf(buffer + offset + n, "\"");
     return n;

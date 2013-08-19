@@ -28,7 +28,7 @@ var emitter2 = new Emitter({ 'esf' : __dirname +'/data/sample.esf' });
 emitter2.emit({
   'type'       : 'FooBar',
   'attributes' : {
-    'fooStr'   : 'Hello',                 // Type spec not needed for String attributes
+    'fooStr'   : "Hello\nWorld",          // Type spec not needed for String attributes
     'fooBool'  : true,                    // Type spec not needed for Boolean attributes
     'foo32'    : [78427, 'Int32'],        // Other attribute types do need a type spec
     'fooIP'    : ['127.0.0.1', 'IPAddr'],
