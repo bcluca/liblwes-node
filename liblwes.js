@@ -5636,12 +5636,18 @@ var dgram        = require('dgram'),
 var Emitter = function (options) {
   var opts = Util.extend({}, Emitter.DEFAULTS);
   Util.extend(opts, options);
+  var self = this;
   if (opts.esf !== null && !fs.existsSync(opts.esf)) {
     throw new Error("Cannot locate ESF file '"+ opts.esf +"'");
   }
   this.address = opts.address;
   this.port    = opts.port;
   this.socket  = dgram.createSocket('udp4');
+  if (opts.ttl) {
+    this.socket.on('listening', function () {
+      self.socket.setMulticastTTL(opts.ttl);
+    });
+  }
   this.socket.unref();
   var emitterIndex  = emitters.push(this) - 1,
       esfFileName   = emitterIndex +'.esf',

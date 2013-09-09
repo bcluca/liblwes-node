@@ -121,6 +121,7 @@ Name | Description
 `esf`       | Path to the ESF (Event Specification Format) file (e.g. `'data/sample.esf'`).
 `heartbeat` | Heartbeat frequency, e.g. `60`. Disabled (`false`) by default.
 `iface`     | The network interface (all local interfaces by default).
+`ttl`       | The multicast TTL (time to live)
 
 The following attribute types can be used in the event object passed to the `emit` function:
 
