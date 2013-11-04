@@ -5682,6 +5682,9 @@ Emitter.prototype = (function () {
       var attrValue = attrs[attrName],
           attrType  = null
       ;
+      if (typeof attrValue === 'undefined' || attrValue === null) {
+        continue;
+      }
       switch (typeof attrValue) {
         // Get the type from the attributes object if present
         case 'object':
