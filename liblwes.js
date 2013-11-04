@@ -5704,7 +5704,7 @@ Emitter.prototype = (function () {
             attrType = LWES.getAttrType(db, attrName, obj['type']);
           }
       }
-      if ([0, 255].indexOf(attrType) !== -1) {
+      if ([0, 255, -1].indexOf(attrType) !== -1) {
         console.log("Warning: Event attribute '"+ obj['type'] +'::'+ attrName +"' has an undefined type");
       } else {
         LWES['set'+ ATTR_TYPES[attrType] +'Attr'](evt, attrName, attrValue);
