@@ -13,8 +13,12 @@
 #ifndef __LWES_NET_FUNCTIONS_H
 #define __LWES_NET_FUNCTIONS_H
 
+#ifndef IN_CLASSD
 #define IN_CLASSD(a)        ((((long int) (a)) & 0xf0000000) == 0xe0000000)
+#endif
+#ifndef IN_MULTICAST
 #define IN_MULTICAST(a)     IN_CLASSD(a)
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
