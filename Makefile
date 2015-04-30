@@ -1,5 +1,5 @@
 CC=emcc
-CFLAGS=-O2 -s ASM_JS=1
+CFLAGS=-O3 -s ASM_JS=1 --memory-init-file 0
 SOURCES=src/lwes-0.23.2/lwes_*.c
 POST_JS=src/liblwes.js
 EXT_LIBS=--js-library src/lwes_ext.js
