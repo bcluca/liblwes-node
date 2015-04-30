@@ -2,7 +2,7 @@ mergeInto(LibraryManager.library, {
 
   // Sends LWES payload via Node.js UDP socket
   'js_send_bytes' : function (emitterIndex, buf, len) {
-    var data    = HEAPU8.slice(buf, buf + len),
+    var data    = Array.prototype.slice.call(HEAPU8, buf, buf + len),
         payload = new Buffer(data),
         emitter = emitters[emitterIndex]
     ;
