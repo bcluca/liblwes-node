@@ -121,6 +121,10 @@ Emitter.prototype = (function () {
       if ([0, 255, -1].indexOf(attrType) !== -1) {
         console.log("Warning: Event attribute '"+ obj['type'] +'::'+ attrName +"' has an undefined type");
       } else {
+        if (attrType === 5 && typeof attrValue !== 'string') {
+          // Implicit coercion of String attributes
+          attrValue = String(attrValue);
+        }
         LWES['set'+ ATTR_TYPES[attrType] +'Attr'](evt, attrName, attrValue);
       }
     }
