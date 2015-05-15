@@ -230,6 +230,8 @@ Listener.prototype.close = function () {
   this.socket.close();
 };
 
+removeUnwantedUncaughtExceptionListener();
+
 // Export interface
 module.exports = {
   'Emitter' : Emitter,
